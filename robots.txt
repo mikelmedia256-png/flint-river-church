@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://flintriverchurch.org/sitemap.xml

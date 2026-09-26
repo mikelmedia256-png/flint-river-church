@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-labelledby="t">
+  <title id="t">Flint River Church</title>
+  <!-- Vector redraw of the Flint River logo (drop of blood, cross, living water). Replace with the original art file when available. -->
+  <defs>
+    <clipPath id="drop">
+      <path d="M100 12C122 58 168 100 168 162a68 68 0 0 1-136 0C32 100 78 58 100 12Z"/>
+    </clipPath>
+  </defs>
+  <path d="M100 12C122 58 168 100 168 162a68 68 0 0 1-136 0C32 100 78 58 100 12Z" fill="#fff"/>
+  <g clip-path="url(#drop)">
+    <!-- cross -->
+    <path d="M93 34h14v26h24v13h-24v106H93V73H69V60h24Z" fill="#fff" stroke="#1f6fb8" stroke-width="3" stroke-linejoin="round"/>
+    <!-- F R -->
+    <g fill="#fff" stroke="#1f6fb8" stroke-width="3" stroke-linejoin="round">
+      <path d="M52 94h34v12H66v10h17v12H66v22H52Z"/>
+      <path d="M114 94h21c13 0 21 7 21 18 0 8-4 13-10 16l12 22h-16l-10-20h-4v20h-14Zm14 12v12h6c5 0 8-2 8-6s-3-6-8-6Z"/>
+    </g>
+    <!-- living water -->
+    <path d="M20 170c22-14 44-18 66-10s44 10 62 0 22-24 30-28v108H20Z" fill="#1f6fb8"/>
+    <g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round">
+      <path d="M36 184c18-10 36-12 54-5s40 8 58-3 18-22 20-26"/>
+      <path d="M40 202c18-9 34-10 52-4s38 7 54-2 16-16 18-20"/>
+      <path d="M52 220c16-7 30-8 46-3s32 5 46-2"/>
+    </g>
+  </g>
+  <path d="M100 12C122 58 168 100 168 162a68 68 0 0 1-136 0C32 100 78 58 100 12Z" fill="none" stroke="#c0262d" stroke-width="7" stroke-linejoin="round"/>
+</svg>
