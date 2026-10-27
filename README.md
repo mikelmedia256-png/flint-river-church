@@ -40,7 +40,7 @@ While the list is empty, the page shows "Our next celebration will be shared her
 
 - **One-time upcoming events:** add `{ d: new Date(YYYY, monthIndex, day), t: "Title", n: "Note" }` to `SPECIAL` in `js/main.js`; it joins the auto-generated "Upcoming" list (home + Events) and drops off after the date. For a featured flyer block, add a `<section data-until="YYYY-MM-DD">` to `src/events.html`; JS hides it after that day (it still needs removing from the source eventually).
 - **Recaps:** "Recent events" section near the bottom of `src/events.html`. Web images live in `assets/img/events/` (1200px JPG + WebP); originals in `assets/img/originals/`.
-- Oct 27, 2026: added Unmasked: Gospel, Prayer & Praise (Wed Nov 18, 6:30 p.m., guest The Collective; flyer 1024×572) and the Oct 22 Financial Literacy Night recap (presenter Tyrone Bell, AAMU Knight Complex; 4 photos, the pastor asked for them on the site). Unmasked falls on the same night as the generated "Last Midweek Recharge of the year"; confirm whether it replaces Recharge that week.
+- Oct 27, 2026: added Unmasked: Gospel, Prayer & Praise (Wed Nov 18, 6:30 p.m., guest The Collective; flyer 1024×572) and the Oct 22 Financial Literacy Night recap (presenter Tyrone Bell, AAMU Knight Complex; 4 photos, the pastor asked for them on the site). Unmasked is the Midweek Recharge closeout (confirmed Oct 27), so its SPECIAL entry uses `replaces: "recharge-close"` to hide the generated "Last Midweek Recharge" entry that day.
 
 ## How the site is built for new members (from the research pass)
 

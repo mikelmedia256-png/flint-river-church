@@ -81,15 +81,16 @@
       { d: nth(y, 9, SUN, 4), t: "Pink Sunday", n: "Breast cancer awareness — wear pink!" },
       { d: nth(y, 10, WED, 1), t: "Game Night", n: "Food, fellowship, and friendly competition." },
       { d: nth(y, 10, WED, 2), t: "Game Night", n: "Food, fellowship, and friendly competition." },
-      { d: wedBeforeThanksgivingWeek(y), t: "Last Midweek Recharge of the year", n: "We rest and return in January." },
+      { d: wedBeforeThanksgivingWeek(y), t: "Last Midweek Recharge of the year", n: "We rest and return in January.", k: "recharge-close" },
       { d: nth(y, 11, MON, 1), t: "Operation Hungry", n: "Our annual outreach to feed our neighbors.", end: 6 },
       { d: nth(y, 11, SUN, 2), t: "End-of-Year Fellowship", n: "Stay after worship and celebrate the year together." }
     ];
   }
 
-  // One-time events (add new ones here; they drop off once the date passes)
+  // One-time events (add new ones here; they drop off once the date passes).
+  // `replaces: "<k>"` hides the regular event with that k on the same day.
   var SPECIAL = [
-    { d: new Date(2026, 10, 18), t: "Unmasked: Gospel, Prayer & Praise", n: "6:30 p.m. CT, with special musical guest The Collective." }
+    { d: new Date(2026, 10, 18), t: "Unmasked: Gospel, Prayer & Praise", n: "Our Midweek Recharge closeout for the year, in person at 6:30 p.m. CT, with special musical guest The Collective.", replaces: "recharge-close" }
   ];
 
   // Hide sections marked data-until="YYYY-MM-DD" after that day
@@ -107,7 +108,9 @@
     return eventsFor(y).concat(eventsFor(y + 1), SPECIAL)
       .filter(function (e) {
         var last = new Date(e.d); last.setDate(last.getDate() + (e.end || 0));
-        return last >= today;
+        return last >= today && !SPECIAL.some(function (s) {
+          return s.replaces && s.replaces === e.k && +s.d === +e.d;
+        });
       })
       .sort(function (a, b) { return a.d - b.d; })
       .slice(0, count);
