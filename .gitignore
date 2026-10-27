@@ -1,3 +1,5 @@
 assets/img/originals/
 __pycache__/
 .DS_Store
+dist/
+.wrangler/

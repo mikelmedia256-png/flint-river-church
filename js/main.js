@@ -63,7 +63,7 @@
       { d: nth(y, 0, WED, 3), t: "Midweek Recharge returns", n: "Praise & prayer at 6:00, Bible study 6:30–7:30 p.m." },
       { d: nth(y, 1, SUN, 4), t: "Black History Program & College Jersey Sunday", n: "Celebrated during morning worship. Wear your favorite college colors!" },
       { d: nth(y, 2, SUN, 1), t: "Usher's Union Celebration", n: "2:00 p.m., following morning worship." },
-      { d: nth(y, 2, MON, 4), t: "Spring Jubilation Revival", n: "Monday – Wednesday evening revival services.", end: 2 },
+      { d: nth(y, 2, MON, 4), t: "Spring Jubilation Revival", n: "Monday – Wednesday revival services.", end: 2 },
       { d: nth(y, 3, SUN, 2), t: "Communion Sunday", n: "The Lord's Supper and washing of the saints' feet.", k: "communion" },
       { d: easter(y), t: "Resurrection Sunday", n: "He is risen! Bring your family and friends." },
       { d: nth(y, 4, SUN, 2), t: "Mother's Day", n: "Honoring the mothers of Flint River." },
@@ -87,13 +87,24 @@
     ];
   }
 
+  // One-time events (add new ones here; they drop off once the date passes)
+  var SPECIAL = [
+    { d: new Date(2026, 10, 18), t: "Unmasked: Gospel, Prayer & Praise", n: "6:30 p.m. CT, with special musical guest The Collective." }
+  ];
+
+  // Hide sections marked data-until="YYYY-MM-DD" after that day
+  document.querySelectorAll("[data-until]").forEach(function (el) {
+    var p = el.getAttribute("data-until").split("-");
+    if (new Date() > new Date(+p[0], p[1] - 1, +p[2], 23, 59, 59)) el.hidden = true;
+  });
+
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   function upcoming(count) {
     var today = new Date(); today.setHours(0, 0, 0, 0);
     var y = today.getFullYear();
-    return eventsFor(y).concat(eventsFor(y + 1))
+    return eventsFor(y).concat(eventsFor(y + 1), SPECIAL)
       .filter(function (e) {
         var last = new Date(e.d); last.setDate(last.getDate() + (e.end || 0));
         return last >= today;
@@ -134,17 +145,45 @@
     sel.appendChild(other);
   }
 
-  // Forms — DEMO ONLY: not connected to a backend yet (see README).
-  document.querySelectorAll("form[data-demo-form]").forEach(function (form) {
+  // Plan-a-visit form: emailed to the church through FormSubmit (formsubmit.co, see README).
+  document.querySelectorAll("form[data-visit-form]").forEach(function (form) {
+    var btn = form.querySelector("button[type=submit]");
+    var err = form.querySelector(".form-error");
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       if (!form.checkValidity()) { form.reportValidity(); return; }
-      var name = form.querySelector("[name=name]");
-      var slot = form.parentElement.querySelector("[data-first-name]");
-      if (name && slot) slot.textContent = name.value.trim().split(/\s+/)[0];
-      form.classList.add("sent");
-      var ok = form.nextElementSibling;
-      if (ok) { ok.setAttribute("tabindex", "-1"); ok.focus(); }
+      var f = form.elements;
+      if (f._honey.value) return; // bot
+      var date = f.date.options[f.date.selectedIndex];
+      var data = {
+        Name: f.name.value.trim(),
+        Email: f.email.value.trim(),
+        Phone: f.phone.value.trim() || "(not given)",
+        "Planning to visit": date ? date.textContent : "",
+        "Who's coming": f.party.value,
+        "Anything we can help with": f.notes.value.trim() || "(nothing)",
+        _subject: "New visit request: " + f.name.value.trim(),
+        _replyto: f.email.value.trim(),
+        _template: "table"
+      };
+      btn.disabled = true; btn.textContent = "Sending...";
+      if (err) err.hidden = true;
+      fetch(form.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(data)
+      }).then(function (r) { return r.json().then(function (j) { if (!r.ok || String(j.success) !== "true") throw j; }); })
+        .then(function () {
+          var slot = form.parentElement.querySelector("[data-first-name]");
+          if (slot) slot.textContent = data.Name.split(/\s+/)[0];
+          form.classList.add("sent");
+          var ok = form.nextElementSibling;
+          if (ok) { ok.setAttribute("tabindex", "-1"); ok.focus(); }
+        })
+        .catch(function () {
+          if (err) err.hidden = false;
+          btn.disabled = false; btn.textContent = "Plan My Visit";
+        });
     });
   });
 })();

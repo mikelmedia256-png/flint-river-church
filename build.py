@@ -4,10 +4,13 @@
 Edit pages in src/, shared chrome in partials/, then run:  python3 build.py
 Output pages are written to the project root (ready to upload as-is).
 """
+import html
+import json
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-SITE = "https://flintriverchurch.org"
+SITE = "https://theflintriver.org"
 FONTS = ("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800"
          "&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap")
 
@@ -30,7 +33,7 @@ PAGES = {
         path="about.html",
         title="About Us & What We Believe | Flint River Church",
         desc="Flint River Primitive Baptist Church: our vision, mission, beliefs, pastor, "
-             "and history as Alabama's oldest Baptist church, constituted in 1808.",
+             "and history since the church was constituted in 1808.",
     ),
     "ministries.html": dict(
         path="ministries.html",
@@ -44,11 +47,17 @@ PAGES = {
         desc="Upcoming events at Flint River Church in Huntsville, AL: Communion Sundays, Family & Friends Day, "
              "Homecoming, revival, STEAM Summer Camp, and more.",
     ),
+    "baptisms.html": dict(
+        path="baptisms.html",
+        title="Baptisms | Flint River Church, Huntsville AL",
+        desc="Celebrating new life in Christ: the brothers and sisters baptized at Flint River Primitive Baptist Church "
+             "in Huntsville, Alabama.",
+    ),
 }
 
 
 def head(p):
-    url = f"{SITE}/{p['path']}"
+    url = f"{SITE}/{p['path'].removesuffix('.html')}"  # Cloudflare Pages serves /visit, not /visit.html
     preload = (f'  <link rel="preload" as="image" href="{p["preload"]}" type="image/webp">\n'
                if p.get("preload") else "")
     jsonld = (ROOT / "partials/jsonld.html").read_text() if p.get("jsonld") else ""
@@ -79,16 +88,55 @@ def head(p):
 """
 
 
+def baptisms_html():
+    """Render data/baptisms.json as photo cards grouped by year, newest first.
+
+    Each entry: {"name": "...", "date": "YYYY-MM-DD", "photo": "file.jpg" (optional, in assets/img/baptisms/)}
+    """
+    people = json.loads((ROOT / "data/baptisms.json").read_text())
+    if not people:
+        return ('        <div class="baptism-empty reveal">\n'
+                '          <h2>Our next celebration will be shared here</h2>\n'
+                '          <p>When a brother or sister is baptized at Flint River, we\'ll add their photo to this page.</p>\n'
+                '        </div>')
+    people.sort(key=lambda b: (b["date"], b["name"]), reverse=True)
+    out, year = [], None
+    for b in people:
+        d = date.fromisoformat(b["date"])
+        if d.year != year:
+            if year is not None:
+                out.append("        </div>")
+            year = d.year
+            out.append(f'        <div class="group-title reveal"><h2>{year}</h2></div>\n        <div class="baptism-grid">')
+        name = html.escape(b["name"])
+        when = f'{d.strftime("%B")} {d.day}, {d.year}'
+        if b.get("photo"):
+            stem = Path(b["photo"]).stem
+            webp = ROOT / "assets/img/baptisms" / f"{stem}.webp"
+            src = f'<source srcset="assets/img/baptisms/{stem}.webp" type="image/webp">' if webp.exists() else ""
+            photo = (f'<div class="photo"><picture>{src}<img src="assets/img/baptisms/{html.escape(b["photo"])}" '
+                     f'alt="{name} on the day of their baptism" loading="lazy"></picture></div>')
+        else:
+            initials = "".join(w[0] for w in b["name"].split()[:2]).upper()
+            photo = f'<div class="photo baptism-initials" aria-hidden="true">{html.escape(initials)}</div>'
+        out.append(f'          <figure class="baptism-card reveal">{photo}'
+                   f'<figcaption><strong>{name}</strong><time datetime="{d.isoformat()}">{when}</time></figcaption></figure>')
+    out.append("        </div>")
+    return "\n".join(out)
+
+
 def main():
     header = (ROOT / "partials/header.html").read_text()
     footer = (ROOT / "partials/footer.html").read_text()
     urls = []
     for name, p in PAGES.items():
         body = (ROOT / "src" / name).read_text()
+        if name == "baptisms.html":
+            body = body.replace("<!-- BAPTISMS -->", baptisms_html())
         # Mark the current page in the nav
         nav = header.replace(f'<a href="{name}">', f'<a href="{name}" aria-current="page">')
         (ROOT / name).write_text(head(p) + nav + "\n" + body + "\n" + footer + "</body>\n</html>\n")
-        urls.append(f"{SITE}/{p['path']}")
+        urls.append(f"{SITE}/{p['path'].removesuffix('.html')}")
         print("built", name)
     (ROOT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
